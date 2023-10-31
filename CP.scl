@@ -1,0 +1,40 @@
+FUNCTION_BLOCK "CP"
+TITLE='边沿脉冲'
+VERSION:'0.1'
+KNOW_HOW_PROTECT
+AUTHOR:Goosy
+NAME:CP
+FAMILY:GooLib
+
+VAR_INPUT
+  IN {S7_m_c := 'true'} : BOOL ; // 输入信号
+  PT {S7_m_c := 'true'} : TIME ; // 脉冲时长
+END_VAR
+
+VAR_OUTPUT 
+  Q {S7_m_c := 'true'} : BOOL;   // 脉冲输出
+  ET {S7_m_c := 'true'} : TIME ; // 过期时间
+END_VAR
+
+VAR
+  follower : BOOL ;              // 输入信号跟随
+  edge_TP : TP;                  // 边沿脉冲
+END_VAR
+
+VAR_TEMP 
+  edge : BOOL ;                  // 输入信号上升沿
+END_VAR
+
+BEGIN
+edge := (IN AND NOT follower) OR (NOT IN AND follower);
+
+// 边沿脉冲延时关
+edge_TP(
+    IN := edge,
+    PT := PT);
+Q := edge_TP.Q;
+ET := edge_TP.ET;
+
+follower := IN;
+
+END_FUNCTION_BLOCK

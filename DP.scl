@@ -1,0 +1,41 @@
+FUNCTION_BLOCK "DP"
+TITLE='除颤边沿脉冲'
+VERSION:'0.1'
+KNOW_HOW_PROTECT
+AUTHOR:Goosy
+NAME:DP
+FAMILY:GooLib
+
+VAR_INPUT
+  IN {S7_m_c := 'true'} : BOOL ; // 输入信号
+  IncludeFallingEdge : BOOL ;    // 包含下降沿脉冲，默认只有上升沿脉冲
+  PT {S7_m_c := 'true'} : TIME ; // 脉冲时长
+END_VAR
+
+VAR_OUTPUT 
+  Q {S7_m_c := 'true'} : BOOL;   // 脉冲输出
+  ET {S7_m_c := 'true'} : TIME ; // 过期时间
+END_VAR
+
+VAR
+  follower : BOOL ;              // 输入信号跟随
+  edge_TOF : TOF;                // 边沿脉冲延时关
+END_VAR
+
+VAR_TEMP 
+  edge : BOOL ;                  // 输入信号上升沿
+END_VAR
+
+BEGIN
+edge := (IN AND NOT follower) OR (IncludeFallingEdge AND NOT IN AND follower);
+
+// 边沿脉冲延时关
+edge_TOF(
+    IN := edge,
+    PT := PT);
+Q := edge_TOF.Q;
+ET := edge_TOF.ET;
+
+follower := IN;
+
+END_FUNCTION_BLOCK
